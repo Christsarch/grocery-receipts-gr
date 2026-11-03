@@ -23,7 +23,7 @@ React · Vite · IndexedDB (Dexie) · Tesseract.js · GitHub Actions / Pages
 
 See [ROADMAP.md](ROADMAP.md) for the phased plan (in Greek).
 
-- [x] Phase 0: project skeleton, CI deploy
+- [] Phase 0: project skeleton, CI deploy
 - [ ] Phase 1: manual entry and local storage
 - [ ] Phase 2: camera and receipt QR code
 - [ ] Phase 3: OCR and receipt parsing
