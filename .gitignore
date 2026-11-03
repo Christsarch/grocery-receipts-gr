@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# Αληθινές αποδείξεις ΔΕΝ ανεβαίνουν ποτέ στο GitHub
+# (μπορεί να έχουν ψηφία κάρτας, ΑΦΜ, τοποθεσία καταστήματος κ.λπ.)
+receipts-private/

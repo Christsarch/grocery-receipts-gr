@@ -1,0 +1,135 @@
+/* Χρώματα ως μεταβλητές: αλλάζεις εδώ και αλλάζει όλη η εφαρμογή.
+   Το δεύτερο μπλοκ ενεργοποιείται όταν το κινητό είναι σε σκοτεινό θέμα. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --text: #1b2421;
+  --muted: #5d6b66;
+  --border: #dde3e0;
+  --accent: #1f6f5c;
+  --accent-text: #ffffff;
+  --radius: 14px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111715;
+    --surface: #1b2320;
+    --text: #e8eeeb;
+    --muted: #9aa8a2;
+    --border: #2c3632;
+    --accent: #4fb89a;
+    --accent-text: #0d1311;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.app-header {
+  padding: 20px 16px 8px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.app-main {
+  flex: 1;
+  padding: 8px 16px 96px; /* χώρος για τη μπάρα πλοήγησης στο κάτω μέρος */
+}
+
+.page h2 {
+  font-size: 1.15rem;
+  margin: 8px 0 12px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.card.empty {
+  text-align: center;
+  padding: 32px 20px;
+}
+
+.empty-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+
+.muted {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  margin-top: 20px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 600;
+}
+
+/* Μπάρα πλοήγησης στο κάτω μέρος, όπως στις εφαρμογές κινητού */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab {
+  flex: 1;
+  max-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  color: var(--muted);
+}
+
+.tab.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tab-icon { font-size: 1.25rem; line-height: 1; }
+.tab-label { font-size: 0.75rem; }
