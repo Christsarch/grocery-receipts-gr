@@ -1,6 +1,6 @@
-function lineTotalInCents(item){
-    return Math.round(item.quantity * item.unitPriceInCents);
-    }
+export function lineTotalInCents(item) {
+  return Math.round(item.quantity * item.unitPriceInCents);
+}
 
 export function receiptTotalInCents(receipt) {
   let totalPrice = 0;
