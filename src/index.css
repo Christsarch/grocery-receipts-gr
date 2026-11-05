@@ -150,3 +150,7 @@ button.primary {
   font: inherit; padding: 8px 10px; border-radius: 8px; min-width: 0;
   border: 1px solid var(--border); background: var(--bg); color: var(--text);
 }
+
+.receipt-list { display: flex; flex-direction: column; gap: 10px; }
+.receipt-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
+.receipt-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; color: var(--muted); font-size: 0.9rem; }
