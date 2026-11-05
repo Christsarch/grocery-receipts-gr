@@ -1,12 +1,12 @@
 
 import { sampleReceipt } from "../data/sampleReceipt"
-import { receiptTotalInCents } from "../data/money.js"
+import { formatCents, receiptTotalInCents } from "../data/money.js"
 // Αρχική: σύνοψη του μήνα. Προς το παρόν δείχνει "κενή κατάσταση",
 // γιατί δεν έχουμε ακόμα αποθηκευμένες αποδείξεις (έρχεται στη Φάση 1).
 export default function Home({ onNavigate }) {
 
   const totalInCents = receiptTotalInCents(sampleReceipt);
-  const totalText = (totalInCents / 100).toLocaleString("el-GR", { style: "currency", currency: "EUR" });
+  const totalText = formatCents(totalInCents);
 
   return (
     <section className="page">

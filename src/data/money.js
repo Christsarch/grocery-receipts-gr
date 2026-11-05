@@ -11,3 +11,13 @@ export function receiptTotalInCents(receipt) {
 
   return totalPrice;
 }
+
+export function parseDecimal(text) {
+  const cleaned = text.trim().replace(",", ".");
+  const number = Number(cleaned);
+  return cleaned === "" || Number.isNaN(number) ? null : number;
+}
+
+export function formatCents(cents) {
+  return (cents / 100).toLocaleString("el-GR", { style: "currency", currency: "EUR" });
+}

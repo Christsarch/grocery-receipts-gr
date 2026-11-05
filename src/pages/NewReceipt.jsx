@@ -5,6 +5,26 @@
 
 import { useState } from "react";
 import { CHAINS } from "../data/chains.js";
+import {
+  parseDecimal,
+  lineTotalInCents,
+  receiptTotalInCents,
+  formatCents,
+} from "../data/money.js";
+
+function fromItemToItem(formItem) {
+  const quantity = parseDecimal(formItem.quantityText);
+  const price = parseDecimal(formItem.priceText);
+  if (quantity === null || price === null) {
+    return null;
+  }
+  const unitPriceInCents = Math.round(price * 100);
+  return {
+    unit: formItem.unit,
+    quantity: quantity,
+    unitPriceInCents: unitPriceInCents,
+  };
+}
 
 export default function NewReceipt() {
   const [chainId, setChainId] = useState("");
@@ -41,6 +61,11 @@ export default function NewReceipt() {
     setItems(items.map((f) => (f.id === id ? { ...f, [field]: value } : f)));
   }
 
+  const readyItems = items
+    .map((item) => fromItemToItem(item))
+    .filter((f) => f !== null);
+
+  const totalInCents = receiptTotalInCents({ items: readyItems });
   return (
     <section className="page">
       <h2>Νέα απόδειξη</h2>
@@ -64,44 +89,49 @@ export default function NewReceipt() {
         />
       </div>
       <h3>Είδη</h3>
-      {items.map((item) => (
-        <div className="item-row" key={item.id}>
-          <input
-            placeholder="Όνομα"
-            value={item.name}
-            onChange={(e) => updateItem(item.id, "name", e.target.value)}
-          />
-          <button type="button" onClick={() => removeItem(item.id)}>
-            X
-          </button>
-          <select
-            value={item.unit}
-            onChange={(e) => updateItem(item.id, "unit", e.target.value)}
-          >
-            <option value="piece">τεμ.</option>
-            <option value="kg">κιλά</option>
-          </select>
-          <input
-            placeholder="Ποσότητα"
-            value={item.quantityText}
-            onChange={(e) =>
-              updateItem(item.id, "quantityText", e.target.value)
-            }
-          />
-          <input
-            placeholder="Τιμή"
-            value={item.priceText}
-            onChange={(e) => updateItem(item.id, "priceText", e.target.value)}
-          />
-        </div>
-      ))}
+      {items.map((item) => {
+        const converted = fromItemToItem(item);
+        const lineText =
+          converted === null ? "-" : formatCents(lineTotalInCents(converted));
+        return (
+          <div className="item-row" key={item.id}>
+            <input
+              placeholder="Όνομα"
+              value={item.name}
+              onChange={(e) => updateItem(item.id, "name", e.target.value)}
+            />
+            <button type="button" onClick={() => removeItem(item.id)}>
+              X
+            </button>
+            <select
+              value={item.unit}
+              onChange={(e) => updateItem(item.id, "unit", e.target.value)}
+            >
+              <option value="piece">τεμ.</option>
+              <option value="kg">κιλά</option>
+            </select>
+            <input
+              placeholder="Ποσότητα"
+              value={item.quantityText}
+              onChange={(e) =>
+                updateItem(item.id, "quantityText", e.target.value)
+              }
+            />
+            <input
+              placeholder="Τιμή"
+              value={item.priceText}
+              onChange={(e) => updateItem(item.id, "priceText", e.target.value)}
+            />
+            <small>{lineText}</small>
+          </div>
+        );
+      })}
       <button type="button" onClick={() => addItem()}>
         Προσθήκη
       </button>
-      <pre>{JSON.stringify(items, null, 2)}</pre>
-      <div className="card">
-        <p className="muted">Εδώ θα μπει η φόρμα καταχώρισης (Φάση 1).</p>
-      </div>
+      <p>
+        <strong>Σύνολο: {formatCents(totalInCents)}</strong>
+      </p>
     </section>
   );
 }
