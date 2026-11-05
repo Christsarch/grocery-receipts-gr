@@ -9,17 +9,37 @@ import { CHAINS } from "../data/chains.js";
 export default function NewReceipt() {
   const [chainId, setChainId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [items, setItems] = useState([{ id: crypto.randomUUID(), name: "", unit: "piece", quantityText: "1", priceText: "" }]); 
+  const [items, setItems] = useState([
+    {
+      id: crypto.randomUUID(),
+      name: "",
+      unit: "piece",
+      quantityText: "1",
+      priceText: "",
+    },
+  ]);
 
-  
-function addItem() {
-    setItems([...items, { id: crypto.randomUUID(), name: "", unit: "piece", quantityText: "1", priceText: "" } ]);
-}
+  function addItem() {
+    setItems([
+      ...items,
+      {
+        id: crypto.randomUUID(),
+        name: "",
+        unit: "piece",
+        quantityText: "1",
+        priceText: "",
+      },
+    ]);
+  }
 
-function removeItem(id) {
+  function removeItem(id) {
     setItems(items.filter((f) => f.id !== id));
-}
+  }
 
+  function updateItem(id, field, value) {
+    // για κάθε είδος: αν είναι αυτό με το id, αντίγραφο με το field αλλαγμένο, αλλιώς όπως είνα
+    setItems(items.map((f) => (f.id === id ? { ...f, [field]: value } : f)));
+  }
 
   return (
     <section className="page">
@@ -37,25 +57,48 @@ function removeItem(id) {
       </div>
       <div className="field">
         <label>Ημερομηνία</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
       </div>
       <h3>Είδη</h3>
-      {items.map((item) =>
-         (<div className="item-row" key={item.id}>
-            <input placeholder="Όνομα" value={item.name}/>
-            <button type="button" onClick={() => removeItem(item.id)}>X</button>
-            <select value={item.unit}>
-              <option value="piece">τεμ.</option>
-              <option value="kg">κιλά</option>
-            </select>
-            <input placeholder="Ποσότητα" value={item.quantityText} />
-            <input placeholder="Τιμή" value={item.priceText} />
-          </div> 
-        ))}
-      <button type="button" onClick={() => addItem()}>Προσθήκη</button>
-      <p>
-        Επιλογή: {chainId} / {date}
-      </p>
+      {items.map((item) => (
+        <div className="item-row" key={item.id}>
+          <input
+            placeholder="Όνομα"
+            value={item.name}
+            onChange={(e) => updateItem(item.id, "name", e.target.value)}
+          />
+          <button type="button" onClick={() => removeItem(item.id)}>
+            X
+          </button>
+          <select
+            value={item.unit}
+            onChange={(e) => updateItem(item.id, "unit", e.target.value)}
+          >
+            <option value="piece">τεμ.</option>
+            <option value="kg">κιλά</option>
+          </select>
+          <input
+            placeholder="Ποσότητα"
+            value={item.quantityText}
+            onChange={(e) =>
+              updateItem(item.id, "quantityText", e.target.value)
+            }
+          />
+          <input
+            placeholder="Τιμή"
+            value={item.priceText}
+            onChange={(e) => updateItem(item.id, "priceText", e.target.value)}
+          />
+        </div>
+      ))}
+      <button type="button" onClick={() => addItem()}>
+        Προσθήκη
+      </button>
+      <pre>{JSON.stringify(items, null, 2)}</pre>
       <div className="card">
         <p className="muted">Εδώ θα μπει η φόρμα καταχώρισης (Φάση 1).</p>
       </div>
