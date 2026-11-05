@@ -9,6 +9,17 @@ import { CHAINS } from "../data/chains.js";
 export default function NewReceipt() {
   const [chainId, setChainId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [items, setItems] = useState([{ id: crypto.randomUUID(), name: "", unit: "piece", quantityText: "1", priceText: "" }]); 
+
+  
+function addItem() {
+    setItems([...items, { id: crypto.randomUUID(), name: "", unit: "piece", quantityText: "1", priceText: "" } ]);
+}
+
+function removeItem(id) {
+    setItems(items.filter((f) => f.id !== id));
+}
+
 
   return (
     <section className="page">
@@ -28,6 +39,20 @@ export default function NewReceipt() {
         <label>Ημερομηνία</label>
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       </div>
+      <h3>Είδη</h3>
+      {items.map((item) =>
+         (<div className="item-row" key={item.id}>
+            <input placeholder="Όνομα" value={item.name}/>
+            <button type="button" onClick={() => removeItem(item.id)}>X</button>
+            <select value={item.unit}>
+              <option value="piece">τεμ.</option>
+              <option value="kg">κιλά</option>
+            </select>
+            <input placeholder="Ποσότητα" value={item.quantityText} />
+            <input placeholder="Τιμή" value={item.priceText} />
+          </div> 
+        ))}
+      <button type="button" onClick={() => addItem()}>Προσθήκη</button>
       <p>
         Επιλογή: {chainId} / {date}
       </p>

@@ -140,3 +140,13 @@ button.primary {
   font: inherit; padding: 10px 12px; border-radius: 10px;
   border: 1px solid var(--border); background: var(--surface); color: var(--text);
 }
+
+.item-row {
+  display: grid; grid-template-columns: 1fr 72px; gap: 8px;
+  padding: 12px; margin-bottom: 8px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+}
+.item-row input, .item-row select {
+  font: inherit; padding: 8px 10px; border-radius: 8px; min-width: 0;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+}
