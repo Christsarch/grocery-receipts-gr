@@ -11,6 +11,7 @@ import {
   receiptTotalInCents,
   formatCents,
 } from "../data/money.js";
+import { db } from "../data/db.js";
 
 function fromItemToItem(formItem) {
   const quantity = parseDecimal(formItem.quantityText);
@@ -23,33 +24,27 @@ function fromItemToItem(formItem) {
     unit: formItem.unit,
     quantity: quantity,
     unitPriceInCents: unitPriceInCents,
+    name: formItem.name,
+    id: formItem.id,
+  };
+}
+function newEmptyItem() {
+  return {
+    id: crypto.randomUUID(),
+    name: "",
+    unit: "piece",
+    quantityText: "1",
+    priceText: "",
   };
 }
 
 export default function NewReceipt() {
   const [chainId, setChainId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [items, setItems] = useState([
-    {
-      id: crypto.randomUUID(),
-      name: "",
-      unit: "piece",
-      quantityText: "1",
-      priceText: "",
-    },
-  ]);
+  const [items, setItems] = useState([newEmptyItem()]);
 
   function addItem() {
-    setItems([
-      ...items,
-      {
-        id: crypto.randomUUID(),
-        name: "",
-        unit: "piece",
-        quantityText: "1",
-        priceText: "",
-      },
-    ]);
+    setItems([...items, newEmptyItem()]);
   }
 
   function removeItem(id) {
@@ -66,6 +61,24 @@ export default function NewReceipt() {
     .filter((f) => f !== null);
 
   const totalInCents = receiptTotalInCents({ items: readyItems });
+
+  async function saveReceipt() {
+    if (chainId === "" || readyItems.length === 0) {
+      alert("Πρέπει να γίνει επιλογή αλυσίδας και καταχώρηση προϊόντος");
+      return;
+    }
+    const receipt = {
+      id: crypto.randomUUID(),
+      chainId: chainId,
+      date: date,
+      items: readyItems,
+    };
+    await db.receipts.add(receipt);
+
+    setChainId("");
+    setItems([newEmptyItem()]);
+  }
+
   return (
     <section className="page">
       <h2>Νέα απόδειξη</h2>
@@ -132,6 +145,9 @@ export default function NewReceipt() {
       <p>
         <strong>Σύνολο: {formatCents(totalInCents)}</strong>
       </p>
+      <button type="button" className="primary" onClick={saveReceipt}>
+        Αποθήκευση
+      </button>
     </section>
   );
 }
