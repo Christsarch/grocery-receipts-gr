@@ -19,5 +19,18 @@ export function parseDecimal(text) {
 }
 
 export function formatCents(cents) {
-  return (cents / 100).toLocaleString("el-GR", { style: "currency", currency: "EUR" });
+  return (cents / 100).toLocaleString("el-GR", {
+    style: "currency",
+    currency: "EUR",
+  });
+}
+
+export function receiptsTotalInCents(receipts) {
+  let totalReceipts = 0;
+
+  for (const receipt of receipts) {
+    totalReceipts += receiptTotalInCents(receipt);
+  }
+
+  return totalReceipts;
 }

@@ -1,27 +1,57 @@
+// Αρχική: σύνοψη των εξόδων του τρέχοντος μήνα.
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "../data/db.js";
+import { formatCents, receiptsTotalInCents } from "../data/money.js";
 
-import { sampleReceipt } from "../data/sampleReceipt"
-import { formatCents, receiptTotalInCents } from "../data/money.js"
-// Αρχική: σύνοψη του μήνα. Προς το παρόν δείχνει "κενή κατάσταση",
-// γιατί δεν έχουμε ακόμα αποθηκευμένες αποδείξεις (έρχεται στη Φάση 1).
 export default function Home({ onNavigate }) {
+  const receipts = useLiveQuery(() => db.receipts.toArray());
 
-  const totalInCents = receiptTotalInCents(sampleReceipt);
-  const totalText = formatCents(totalInCents);
+  if (receipts === undefined) {
+    return (
+      <section className="page">
+        <div className="card empty">
+          <p className="muted">Φόρτωση…</p>
+        </div>
+      </section>
+    );
+  }
+
+  const currentMonth = new Date().toISOString().slice(0, 7); // π.χ. "2026-11"
+  const monthName = new Date().toLocaleDateString("el-GR", {
+    month: "long",
+    year: "numeric",
+  }); // π.χ. "Νοέμβριος 2026"
+
+  const monthReceipts = receipts.filter((receipt) =>
+    receipt.date.startsWith(currentMonth),
+  );
+
+  const monthTotalInCents = receiptsTotalInCents(monthReceipts);
+
+  if (monthReceipts.length === 0) {
+    return (
+      <section className="page">
+        <div className="card empty">
+          <p className="empty-title">Καμία απόδειξη αυτόν τον μήνα</p>
+          <p className="muted">
+            Πρόσθεσε μια απόδειξη και εδώ θα βλέπεις πόσα ξόδεψες αυτόν τον μήνα
+            και σε ποια σούπερ μάρκετ.
+          </p>
+          <button className="primary" onClick={() => onNavigate("new")}>
+            Νέα απόδειξη
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="page">
-      <div className="card empty">
-        <p className="empty-title">Δεν υπάρχουν αποδείξεις ακόμα</p>
-        <p className="muted">
-          Πρόσθεσε την πρώτη σου απόδειξη και εδώ θα βλέπεις πόσα ξόδεψες
-          αυτόν τον μήνα και σε ποια σούπερ μάρκετ.
-        </p>
-        <p>Σύνολο δοκιμαστικής απόδειξης: {totalText}</p>
-        <button className="primary" onClick={() => onNavigate('new')}>
-          Νέα απόδειξη
-        </button>
+      <div className="card">
+        <p className="muted">{monthName}</p>
+        <p className="big-total">{formatCents(monthTotalInCents)}</p>
+        <p className="muted">από {monthReceipts.length} αποδείξεις</p>
       </div>
     </section>
-  )
+  );
 }
-
