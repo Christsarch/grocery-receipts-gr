@@ -12,6 +12,7 @@ import {
   formatCents,
 } from "../data/money.js";
 import { db } from "../data/db.js";
+import { fileToCanvas } from "../image/resize.js";
 
 function fromItemToItem(formItem) {
   const quantity = parseDecimal(formItem.quantityText);
@@ -43,8 +44,9 @@ export default function NewReceipt() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [items, setItems] = useState([newEmptyItem()]);
   const [photoUrl, setPhotoUrl] = useState("");
+  const [photoInfo, setPhotoInfo] = useState("");
 
-  function handlePhoto(e) {
+  async function handlePhoto(e) {
     const file = e.target.files[0];
     if (!file) {
       return;
@@ -53,6 +55,11 @@ export default function NewReceipt() {
       URL.revokeObjectURL(photoUrl);
     }
     setPhotoUrl(URL.createObjectURL(file));
+
+    const result = await fileToCanvas(file);
+    setPhotoInfo(
+      `${result.originalWidth}×${result.originalHeight} → ${result.canvas.width}×${result.canvas.height}`,
+    );
   }
 
   function removePhoto() {
@@ -61,6 +68,7 @@ export default function NewReceipt() {
     }
     URL.revokeObjectURL(photoUrl);
     setPhotoUrl("");
+    setPhotoInfo("");
   }
 
   function addItem() {
@@ -119,6 +127,7 @@ export default function NewReceipt() {
             alt="Φωτογραφία απόδειξης"
             className="photo-preview"
           />
+          <small>{photoInfo}</small>
           <button type="button" onClick={removePhoto}>
             Αφαίρεση φωτογραφίας
           </button>
