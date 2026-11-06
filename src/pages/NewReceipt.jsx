@@ -42,6 +42,26 @@ export default function NewReceipt() {
   const [chainId, setChainId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [items, setItems] = useState([newEmptyItem()]);
+  const [photoUrl, setPhotoUrl] = useState("");
+
+  function handlePhoto(e) {
+    const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    if (photoUrl) {
+      URL.revokeObjectURL(photoUrl);
+    }
+    setPhotoUrl(URL.createObjectURL(file));
+  }
+
+  function removePhoto() {
+    if (!confirm("Αφαίρεση αυτής της φωτογραφίας;")) {
+      return;
+    }
+    URL.revokeObjectURL(photoUrl);
+    setPhotoUrl("");
+  }
 
   function addItem() {
     setItems([...items, newEmptyItem()]);
@@ -82,6 +102,28 @@ export default function NewReceipt() {
   return (
     <section className="page">
       <h2>Νέα απόδειξη</h2>
+      <label className="photo-button">
+        📷 Φωτογραφία απόδειξης
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onChange={handlePhoto}
+        />
+      </label>
+      {photoUrl && (
+        <div>
+          <img
+            src={photoUrl}
+            alt="Φωτογραφία απόδειξης"
+            className="photo-preview"
+          />
+          <button type="button" onClick={removePhoto}>
+            Αφαίρεση φωτογραφίας
+          </button>
+        </div>
+      )}
       <div className="field">
         <label>Αλυσίδα</label>
         <select value={chainId} onChange={(e) => setChainId(e.target.value)}>
