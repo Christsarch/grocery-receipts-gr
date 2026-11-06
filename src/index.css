@@ -166,3 +166,6 @@ button.primary {
   display: block; width: 100%; max-height: 360px; object-fit: contain;
   border-radius: 10px; background: var(--surface); margin-bottom: 8px;
 }
+
+/* Οι σύνδεσμοι του QR είναι πολύ μεγάλοι: σπάνε σε πολλές γραμμές αντί να βγαίνουν έξω από την οθόνη */
+.qr-link { overflow-wrap: anywhere; }

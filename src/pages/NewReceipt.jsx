@@ -13,6 +13,7 @@ import {
 } from "../data/money.js";
 import { db } from "../data/db.js";
 import { fileToCanvas } from "../image/resize.js";
+import { readQr } from "../image/qr.js";
 
 function fromItemToItem(formItem) {
   const quantity = parseDecimal(formItem.quantityText);
@@ -45,6 +46,7 @@ export default function NewReceipt() {
   const [items, setItems] = useState([newEmptyItem()]);
   const [photoUrl, setPhotoUrl] = useState("");
   const [photoInfo, setPhotoInfo] = useState("");
+  const [qrText, setQrText] = useState("");
 
   async function handlePhoto(e) {
     const file = e.target.files[0];
@@ -60,6 +62,7 @@ export default function NewReceipt() {
     setPhotoInfo(
       `${result.originalWidth}×${result.originalHeight} → ${result.canvas.width}×${result.canvas.height}`,
     );
+    setQrText(readQr(result.canvas));
   }
 
   function removePhoto() {
@@ -69,6 +72,7 @@ export default function NewReceipt() {
     URL.revokeObjectURL(photoUrl);
     setPhotoUrl("");
     setPhotoInfo("");
+    setQrText("");
   }
 
   function addItem() {
@@ -128,6 +132,17 @@ export default function NewReceipt() {
             className="photo-preview"
           />
           <small>{photoInfo}</small>
+          {qrText === null && (
+            <p className="muted">Δεν βρέθηκε QR στη φωτογραφία.</p>
+          )}
+          {qrText && (
+            <p className="qr-link">
+              QR:{" "}
+              <a href={qrText} target="_blank" rel="noopener noreferrer">
+                {qrText}
+              </a>
+            </p>
+          )}
           <button type="button" onClick={removePhoto}>
             Αφαίρεση φωτογραφίας
           </button>
