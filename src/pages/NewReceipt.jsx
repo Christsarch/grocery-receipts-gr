@@ -57,12 +57,15 @@ export default function NewReceipt() {
       URL.revokeObjectURL(photoUrl);
     }
     setPhotoUrl(URL.createObjectURL(file));
+    // Καθαρίζουμε τα αποτελέσματα της προηγούμενης φωτογραφίας όσο ψάχνουμε
+    setPhotoInfo("");
+    setQrText("");
 
     const result = await fileToCanvas(file);
     setPhotoInfo(
       `${result.originalWidth}×${result.originalHeight} → ${result.canvas.width}×${result.canvas.height}`,
     );
-    setQrText(readQr(result.canvas));
+    setQrText(await readQr(result.canvas));
   }
 
   function removePhoto() {
@@ -133,7 +136,7 @@ export default function NewReceipt() {
           />
           <small>{photoInfo}</small>
           {qrText === null && (
-            <p className="muted">Δεν βρέθηκε QR στη φωτογραφία.</p>
+            <p className="muted"> Δεν βρέθηκε QR. Δοκίμασε να φωτογραφίσεις από κοντά μόνο το QR, με καλό φωτισμό.</p>
           )}
           {qrText && (
             <p className="qr-link">
