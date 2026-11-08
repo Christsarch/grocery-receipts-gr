@@ -1,3 +1,5 @@
+import { parseReceipt } from './receipt.js';
+
 // Από τον σύνδεσμο του QR της Entersoft στον σύνδεσμο του XML (πρότυπο PEPPOL).
 // Μορφή του QR: https://e-invoicing.gr/edocuments/ViewInvoice/<ofenm>/<id>_<token>
 // Αν ο σύνδεσμος δεν έχει αυτή τη μορφή, επιστρέφει null.
@@ -20,7 +22,7 @@ function entersoftXmlUrl(qrUrl) {
 // Οι πάροχοι που δεχόμαστε. Ο Worker δεν ανοίγει ποτέ άλλο site.
 const ALLOWED_HOSTS = ['e-invoicing.gr'];
 
-// Ο Worker: δέχεται ?url=<σύνδεσμος του QR> και επιστρέφει το XML της απόδειξης.
+// Ο Worker: δέχεται ?url=<σύνδεσμος του QR> και επιστρέφει τα είδη της απόδειξης ως JSON.
 // Δεν κρατάει τίποτα: ούτε αρχεία, ούτε logs.
 export default {
 	async fetch(request, env, ctx) {
@@ -61,10 +63,13 @@ export default {
 			return new Response('Ο πάροχος δεν απάντησε', { status: 502 });
 		}
 
-		// Επιστρέφουμε το XML, δηλώνοντας UTF-8 ώστε να μη χαλάσουν τα ελληνικά
+		// Διαβάζουμε το XML και στέλνουμε μόνο τα είδη, ως JSON (το Response.json βάζει μόνο του UTF-8).
+		// Η parseReceipt πετάει λάθος αν τα δεδομένα του παρόχου δεν βγάζουν νόημα.
 		const xmlText = await response.text();
-		return new Response(xmlText, {
-			headers: { 'Content-Type': 'application/xml; charset=utf-8' },
-		});
+		try {
+			return Response.json(parseReceipt(xmlText));
+		} catch {
+			return new Response('Η απόδειξη δεν διαβάστηκε', { status: 502 });
+		}
 	},
 };
