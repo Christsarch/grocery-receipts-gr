@@ -22,54 +22,73 @@ function entersoftXmlUrl(qrUrl) {
 // Οι πάροχοι που δεχόμαστε. Ο Worker δεν ανοίγει ποτέ άλλο site.
 const ALLOWED_HOSTS = ['e-invoicing.gr'];
 
+// Τα sites της εφαρμογής μας: μόνο αυτά μπορούν να διαβάσουν τις απαντήσεις του Worker
+const ALLOWED_ORIGINS = ['http://localhost:5173', 'https://christsarch.github.io'];
+
+// Βάζει στην απάντηση την άδεια για τον browser (CORS), μόνο αν το αίτημα ήρθε από την εφαρμογή μας
+function withCors(response, request) {
+	const origin = request.headers.get('Origin');
+	if (ALLOWED_ORIGINS.includes(origin)) {
+		response.headers.set('Access-Control-Allow-Origin', origin);
+		response.headers.set('Vary', 'Origin');
+	}
+	return response;
+}
+
+// Αποφασίζει τι απαντάμε: τα είδη της απόδειξης, ή μήνυμα λάθους με τον σωστό κωδικό
+async function handleRequest(request) {
+	// Η παράμετρος "url" (ή null αν λείπει, ή "" αν είναι κενή)
+	const reqUrl = new URL(request.url);
+	const qrUrl = reqUrl.searchParams.get('url');
+	if (!qrUrl) {
+		return new Response('Λείπει ο σύνδεσμος της απόδειξης', { status: 400 });
+	}
+
+	// Το new URL πετάει λάθος αν το κείμενο δεν είναι σύνδεσμος
+	let parsedUrl;
+	try {
+		parsedUrl = new URL(qrUrl);
+	} catch {
+		return new Response('Μη έγκυρος σύνδεσμος', { status: 400 });
+	}
+
+	// Μόνο πάροχοι από τη λίστα
+	if (!ALLOWED_HOSTS.includes(parsedUrl.hostname)) {
+		return new Response('Άγνωστος πάροχος', { status: 400 });
+	}
+
+	// Σωστό site, αλλά λάθος μορφή συνδέσμου (π.χ. σκέτο https://e-invoicing.gr/)
+	const xmlUrl = entersoftXmlUrl(qrUrl);
+	if (xmlUrl === null) {
+		return new Response('Μη έγκυρος σύνδεσμος', { status: 400 });
+	}
+
+	// Κατεβάζουμε το XML. Το fetch πετάει λάθος αν δεν υπάρχει καθόλου σύνδεση με τον πάροχο.
+	let response;
+	try {
+		response = await fetch(xmlUrl);
+	} catch {
+		return new Response('Ο πάροχος δεν απάντησε', { status: 502 });
+	}
+	if (!response.ok) {
+		return new Response('Ο πάροχος δεν απάντησε', { status: 502 });
+	}
+
+	// Διαβάζουμε το XML και στέλνουμε μόνο τα είδη, ως JSON (το Response.json βάζει μόνο του UTF-8).
+	// Η parseReceipt πετάει λάθος αν τα δεδομένα του παρόχου δεν βγάζουν νόημα.
+	const xmlText = await response.text();
+	try {
+		return Response.json(parseReceipt(xmlText));
+	} catch {
+		return new Response('Η απόδειξη δεν διαβάστηκε', { status: 502 });
+	}
+}
+
 // Ο Worker: δέχεται ?url=<σύνδεσμος του QR> και επιστρέφει τα είδη της απόδειξης ως JSON.
 // Δεν κρατάει τίποτα: ούτε αρχεία, ούτε logs.
 export default {
 	async fetch(request, env, ctx) {
-		// Η παράμετρος "url" (ή null αν λείπει, ή "" αν είναι κενή)
-		const reqUrl = new URL(request.url);
-		const qrUrl = reqUrl.searchParams.get('url');
-		if (!qrUrl) {
-			return new Response('Λείπει ο σύνδεσμος της απόδειξης', { status: 400 });
-		}
-
-		// Το new URL πετάει λάθος αν το κείμενο δεν είναι σύνδεσμος
-		let parsedUrl;
-		try {
-			parsedUrl = new URL(qrUrl);
-		} catch {
-			return new Response('Μη έγκυρος σύνδεσμος', { status: 400 });
-		}
-
-		// Μόνο πάροχοι από τη λίστα
-		if (!ALLOWED_HOSTS.includes(parsedUrl.hostname)) {
-			return new Response('Άγνωστος πάροχος', { status: 400 });
-		}
-
-		// Σωστό site, αλλά λάθος μορφή συνδέσμου (π.χ. σκέτο https://e-invoicing.gr/)
-		const xmlUrl = entersoftXmlUrl(qrUrl);
-		if (xmlUrl === null) {
-			return new Response('Μη έγκυρος σύνδεσμος', { status: 400 });
-		}
-
-		// Κατεβάζουμε το XML. Το fetch πετάει λάθος αν δεν υπάρχει καθόλου σύνδεση με τον πάροχο.
-		let response;
-		try {
-			response = await fetch(xmlUrl);
-		} catch {
-			return new Response('Ο πάροχος δεν απάντησε', { status: 502 });
-		}
-		if (!response.ok) {
-			return new Response('Ο πάροχος δεν απάντησε', { status: 502 });
-		}
-
-		// Διαβάζουμε το XML και στέλνουμε μόνο τα είδη, ως JSON (το Response.json βάζει μόνο του UTF-8).
-		// Η parseReceipt πετάει λάθος αν τα δεδομένα του παρόχου δεν βγάζουν νόημα.
-		const xmlText = await response.text();
-		try {
-			return Response.json(parseReceipt(xmlText));
-		} catch {
-			return new Response('Η απόδειξη δεν διαβάστηκε', { status: 502 });
-		}
+		const response = await handleRequest(request);
+		return withCors(response, request);
 	},
 };
