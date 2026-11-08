@@ -1,7 +1,7 @@
 // Νέα απόδειξη.
-// Φάση 1: φόρμα για χειροκίνητη καταχώριση (κατάστημα, ημερομηνία, είδη, τιμές).
-// Φάση 2: φωτογραφία + ανάγνωση QR.
-// Φάση 3: OCR που συμπληρώνει τη φόρμα αυτόματα.
+// Φωτογραφία με το QR → ο Worker φέρνει την ηλεκτρονική απόδειξη → η φόρμα γεμίζει μόνη της.
+// Η ίδια φόρμα χρησιμεύει για έλεγχο και διορθώσεις πριν την αποθήκευση,
+// και για χειροκίνητη καταχώριση όταν η απόδειξη δεν μπορεί να εισαχθεί αυτόματα.
 
 import { useState } from "react";
 import { CHAINS } from "../data/chains.js";
@@ -14,6 +14,7 @@ import {
 import { db } from "../data/db.js";
 import { fileToCanvas } from "../image/resize.js";
 import { readQr } from "../image/qr.js";
+import { fetchReceipt } from "../data/receiptApi.js";
 
 function fromItemToItem(formItem) {
   const quantity = parseDecimal(formItem.quantityText);
@@ -30,6 +31,7 @@ function fromItemToItem(formItem) {
     id: formItem.id,
   };
 }
+
 function newEmptyItem() {
   return {
     id: crypto.randomUUID(),
@@ -40,6 +42,17 @@ function newEmptyItem() {
   };
 }
 
+// Από ένα είδος του Worker σε ένα είδος της φόρμας (το αντίστροφο της fromItemToItem)
+function importedToFormItem(item) {
+  return {
+    id: crypto.randomUUID(),
+    name: item.name,
+    unit: item.unit,
+    quantityText: String(item.quantity),
+    priceText: (item.unitPriceInCents / 100).toFixed(2),
+  };
+}
+
 export default function NewReceipt() {
   const [chainId, setChainId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -47,6 +60,7 @@ export default function NewReceipt() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [photoInfo, setPhotoInfo] = useState("");
   const [qrText, setQrText] = useState("");
+  const [importMessage, setImportMessage] = useState("");
 
   async function handlePhoto(e) {
     const file = e.target.files[0];
@@ -56,26 +70,56 @@ export default function NewReceipt() {
     if (photoUrl) {
       URL.revokeObjectURL(photoUrl);
     }
+
     setPhotoUrl(URL.createObjectURL(file));
     // Καθαρίζουμε τα αποτελέσματα της προηγούμενης φωτογραφίας όσο ψάχνουμε
     setPhotoInfo("");
     setQrText("");
+    setImportMessage("");
 
     const result = await fileToCanvas(file);
     setPhotoInfo(
       `${result.originalWidth}×${result.originalHeight} → ${result.canvas.width}×${result.canvas.height}`,
     );
-    setQrText(await readQr(result.canvas));
+    // Χρησιμοποιούμε τη μεταβλητή qr και όχι το qrText: το state αλλάζει μόνο στο επόμενο render
+    const qr = await readQr(result.canvas);
+    setQrText(qr);
+    if (qr !== null) {
+      await importFromQr(qr);
+    }
+  }
+
+  // Στέλνει τον σύνδεσμο του QR στον Worker και γεμίζει τη φόρμα με την απόδειξη
+  async function importFromQr(qrUrl) {
+    setImportMessage("Φόρτωση απόδειξης…");
+    try {
+      const receipt = await fetchReceipt(qrUrl);
+      // Άγνωστος ΑΦΜ (chainId null): ο χρήστης διαλέγει αλυσίδα από τη λίστα
+      if (receipt.chainId !== null) {
+        setChainId(receipt.chainId);
+      }
+      setDate(receipt.date);
+      setItems(receipt.items.map((item) => importedToFormItem(item)));
+      setImportMessage(`Βρέθηκαν ${receipt.items.length} είδη`);
+    } catch (error) {
+      // Το μήνυμα έρχεται από το fetchReceipt (π.χ. "Άγνωστος πάροχος")
+      setImportMessage(error.message);
+    }
   }
 
   function removePhoto() {
     if (!confirm("Αφαίρεση αυτής της φωτογραφίας;")) {
       return;
     }
+    clearPhoto();
+  }
+
+  function clearPhoto() {
     URL.revokeObjectURL(photoUrl);
     setPhotoUrl("");
     setPhotoInfo("");
     setQrText("");
+    setImportMessage("");
   }
 
   function addItem() {
@@ -87,7 +131,7 @@ export default function NewReceipt() {
   }
 
   function updateItem(id, field, value) {
-    // για κάθε είδος: αν είναι αυτό με το id, αντίγραφο με το field αλλαγμένο, αλλιώς όπως είνα
+    // για κάθε είδος: αν είναι αυτό με το id, αντίγραφο με το field αλλαγμένο, αλλιώς όπως είναι
     setItems(items.map((f) => (f.id === id ? { ...f, [field]: value } : f)));
   }
 
@@ -110,8 +154,10 @@ export default function NewReceipt() {
     };
     await db.receipts.add(receipt);
 
+    // Η φόρμα και η φωτογραφία καθαρίζουν, έτοιμες για την επόμενη απόδειξη
     setChainId("");
     setItems([newEmptyItem()]);
+    clearPhoto();
   }
 
   return (
@@ -136,7 +182,10 @@ export default function NewReceipt() {
           />
           <small>{photoInfo}</small>
           {qrText === null && (
-            <p className="muted"> Δεν βρέθηκε QR. Δοκίμασε να φωτογραφίσεις από κοντά μόνο το QR, με καλό φωτισμό.</p>
+            <p className="muted">
+              Δεν βρέθηκε QR. Δοκίμασε να φωτογραφίσεις από κοντά μόνο το QR, με
+              καλό φωτισμό.
+            </p>
           )}
           {qrText && (
             <p className="qr-link">
@@ -146,6 +195,7 @@ export default function NewReceipt() {
               </a>
             </p>
           )}
+          {importMessage && <p className="muted">{importMessage}</p>}
           <button type="button" onClick={removePhoto}>
             Αφαίρεση φωτογραφίας
           </button>
