@@ -12,7 +12,7 @@ Grocery spending is one of the biggest monthly expenses for students and househo
 
 - **Progressive Web App:** runs in the phone browser and installs to the home screen; one codebase for Android and iOS.
 - **QR code reading in the browser:** the phone's native `BarcodeDetector` when available, otherwise jsQR, with a small image-processing step that fills the white lines thermal printers leave across the code. Photos never leave the device.
-- **Electronic receipts, not OCR:** Greek retail receipts link to the provider's copy of the document, available as an **EN 16931 / PEPPOL BIS Billing 3.0** UBL XML. The app parses that European standard instead of guessing from a photo, and checks that the line totals add up to the receipt total.
+- **Electronic receipts, not OCR:** Greek retail receipts link to the provider's copy of the document, available as an **EN 16931 / PEPPOL BIS Billing 3.0** UBL XML. The app parses that European standard instead of guessing from a photo, and checks that the line totals add up to the receipt total. The receipt's MARK (the unique number the Greek tax authority assigns to every receipt) prevents saving the same receipt twice.
 - **A tiny, stateless proxy:** a Cloudflare Worker fetches the XML on the app's behalf (browsers block cross-site reads), parses it and returns only the items as JSON, so payment and loyalty-card details never reach the app. It only accepts known receipt providers and keeps no logs.
 - **Local-first storage:** receipts live in IndexedDB on your device. No account, no database server.
 - **Free to run:** GitHub Pages, GitHub Actions and the Cloudflare Workers free plan.
@@ -28,7 +28,7 @@ See [ROADMAP.md](ROADMAP.md) for the phased plan (in Greek).
 - [x] Phase 0: project skeleton, CI deploy
 - [x] Phase 1: manual entry and local storage
 - [x] Phase 2: camera and receipt QR code
-- [ ] Phase 3: electronic receipt import (in progress: QR reading and the Worker that fetches and parses the receipt are done; app integration next)
+- [ ] Phase 3: electronic receipt import (in progress: scanning a Masoutis receipt fills the form automatically, with duplicate detection by the receipt's MARK number; myDATA file import and more providers next)
 - [ ] Phase 4: spending statistics
 - [ ] Phase 5: product matching across chains, offline PWA, v1.0
 

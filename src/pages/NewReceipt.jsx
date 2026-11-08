@@ -63,6 +63,7 @@ export default function NewReceipt() {
   const [photoInfo, setPhotoInfo] = useState("");
   const [qrText, setQrText] = useState("");
   const [importMessage, setImportMessage] = useState("");
+  const [mark, setMark] = useState(null);
 
   async function handlePhoto(e) {
     const file = e.target.files[0];
@@ -96,6 +97,19 @@ export default function NewReceipt() {
     setImportMessage("Φόρτωση απόδειξης…");
     try {
       const receipt = await fetchReceipt(qrUrl);
+
+      // Έλεγχος διπλοεγγραφής: υπάρχει ήδη απόδειξη με τον ίδιο ΜΑΡΚ;
+      if (receipt.mark !== null) {
+        const existing = await db.receipts
+          .where("mark")
+          .equals(receipt.mark)
+          .first();
+        if (existing !== undefined) {
+          setImportMessage("Αυτή η απόδειξη έχει ήδη αποθηκευτεί");
+          return;
+        }
+      }
+      setMark(receipt.mark);
       // Άγνωστος ΑΦΜ (chainId null): ο χρήστης διαλέγει αλυσίδα από τη λίστα
       if (receipt.chainId !== null) {
         setChainId(receipt.chainId);
@@ -122,6 +136,7 @@ export default function NewReceipt() {
     setPhotoInfo("");
     setQrText("");
     setImportMessage("");
+    setMark(null);
   }
 
   function addItem() {
@@ -165,6 +180,7 @@ export default function NewReceipt() {
       chainId: chainId,
       date: date,
       items: readyItems,
+      mark: mark,
     };
     await db.receipts.add(receipt);
 

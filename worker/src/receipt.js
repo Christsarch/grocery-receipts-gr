@@ -12,7 +12,8 @@ const parser = new XMLParser({
 	removeNSPrefix: true, // "cbc:IssueDate" → "IssueDate"
 	ignoreAttributes: false, // κράτα τα attributes, π.χ. unitCode="58" → "@_unitCode"
 	parseTagValue: false, // όλα ως κείμενο, για να μη χαθεί το 0 μπροστά στον ΑΦΜ
-	isArray: (name) => name === 'InvoiceLine', // πάντα πίνακας, ακόμα και με ένα είδος
+	// Πάντα πίνακες, ακόμα και με ένα στοιχείο: τα είδη, και τα πρόσθετα στοιχεία (εκεί είναι ο ΜΑΡΚ)
+	isArray: (name) => name === 'InvoiceLine' || name === 'AdditionalDocumentReference',
 });
 
 // Από κείμενο σε ευρώ ("1.13") σε ακέραια λεπτά (113)
@@ -21,13 +22,17 @@ function toCents(text) {
 }
 
 // Από το XML της απόδειξης (EN 16931 / PEPPOL UBL) στο σχήμα της εφαρμογής:
-// { chainId, afm, date, items: [{ name, unit, quantity, lineTotalInCents, unitPriceInCents }] }
+// { chainId, afm, mark, date, items: [{ name, unit, quantity, lineTotalInCents, unitPriceInCents }] }
 // Πετάει λάθος αν βρει άγνωστη μονάδα ή αν τα είδη δεν αθροίζουν στο σύνολο.
 export function parseReceipt(xmlText) {
 	const invoice = parser.parse(xmlText).StandardBusinessDocument.Invoice;
 
 	const afm = invoice.AccountingSupplierParty.Party.EndpointID['#text'];
 	const date = invoice.IssueDate;
+
+	// ΜΑΡΚ: ο μοναδικός αριθμός της ΑΑΔΕ για κάθε παραστατικό (για τον έλεγχο διπλοεγγραφής)
+	const markRef = invoice.AdditionalDocumentReference.find((ref) => ref.DocumentDescription === '##M.AR.K##');
+	const mark = markRef?.ID ?? null;
 
 	const items = [];
 	let totalInCents = 0;
@@ -57,5 +62,5 @@ export function parseReceipt(xmlText) {
 		throw new Error(`Τα είδη αθροίζουν ${totalInCents} λεπτά, αλλά το σύνολο είναι ${payableInCents}`);
 	}
 
-	return { chainId: CHAIN_BY_AFM[afm] ?? null, afm, date, items };
+	return { chainId: CHAIN_BY_AFM[afm] ?? null, afm, mark, date, items };
 }
