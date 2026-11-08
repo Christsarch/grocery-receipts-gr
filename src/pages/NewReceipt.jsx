@@ -29,6 +29,7 @@ function fromItemToItem(formItem) {
     unitPriceInCents: unitPriceInCents,
     name: formItem.name,
     id: formItem.id,
+    lineTotalInCents: formItem.lineTotalInCents,
   };
 }
 
@@ -50,6 +51,7 @@ function importedToFormItem(item) {
     unit: item.unit,
     quantityText: String(item.quantity),
     priceText: (item.unitPriceInCents / 100).toFixed(2),
+    lineTotalInCents: item.lineTotalInCents,
   };
 }
 
@@ -131,8 +133,20 @@ export default function NewReceipt() {
   }
 
   function updateItem(id, field, value) {
-    // για κάθε είδος: αν είναι αυτό με το id, αντίγραφο με το field αλλαγμένο, αλλιώς όπως είναι
-    setItems(items.map((f) => (f.id === id ? { ...f, [field]: value } : f)));
+    // Ποσότητα ή τιμή άλλαξε: το σύνολο της απόδειξης δεν ισχύει πια, θα υπολογιστεί από ποσότητα × τιμή
+    const numbersChanged = field === "quantityText" || field === "priceText";
+
+    if (numbersChanged) {
+      setItems(
+        items.map((f) =>
+          f.id === id
+            ? { ...f, [field]: value, lineTotalInCents: undefined }
+            : f,
+        ),
+      );
+    } else {
+      setItems(items.map((f) => (f.id === id ? { ...f, [field]: value } : f)));
+    }
   }
 
   const readyItems = items

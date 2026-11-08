@@ -1,5 +1,9 @@
+// Σύνολο γραμμής σε λεπτά. Αν το είδος έχει το ακριβές σύνολο από την απόδειξη, αυτό.
+// Αλλιώς (χειροκίνητη καταχώριση ή διόρθωση) ποσότητα × τιμή μονάδας.
 export function lineTotalInCents(item) {
-  return Math.round(item.quantity * item.unitPriceInCents);
+  return (
+    item.lineTotalInCents ?? Math.round(item.quantity * item.unitPriceInCents)
+  );
 }
 
 export function receiptTotalInCents(receipt) {
