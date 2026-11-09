@@ -18,6 +18,8 @@ Grocery spending is one of the biggest monthly expenses for students and househo
 - **Local-first storage:** receipts live in IndexedDB on your device. No account, no database server.
 - **Free to run:** GitHub Pages, GitHub Actions and the Cloudflare Workers free plan.
 
+How each provider was investigated, and why some are imported automatically and others through a file: [docs/qr-findings.md](docs/qr-findings.md).
+
 ## Tech stack
 
 React · Vite · IndexedDB (Dexie) · jsQR · Cloudflare Workers · GitHub Actions / Pages · Python (parser prototype in `research/`)

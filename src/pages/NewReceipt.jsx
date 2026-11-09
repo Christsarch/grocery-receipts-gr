@@ -60,7 +60,8 @@ function importedToFormItem(item) {
 export default function NewReceipt() {
   const [chainId, setChainId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [items, setItems] = useState([newEmptyItem()]);
+  // Τα είδη ξεκινούν άδεια: γεμίζουν από την εισαγωγή, ή με το κουμπί "Προσθήκη είδους"
+  const [items, setItems] = useState([]);
   const [photoUrl, setPhotoUrl] = useState("");
   const [photoInfo, setPhotoInfo] = useState("");
   const [qrText, setQrText] = useState("");
@@ -217,7 +218,7 @@ export default function NewReceipt() {
 
     // Η φόρμα και η φωτογραφία καθαρίζουν, έτοιμες για την επόμενη απόδειξη
     setChainId("");
-    setItems([newEmptyItem()]);
+    setItems([]);
     clearPhoto();
   }
 
@@ -266,7 +267,7 @@ export default function NewReceipt() {
         </div>
       )}
       {/* Έξω από τη φωτογραφία: φαίνεται και στην εισαγωγή αρχείου myDATA */}
-      {importMessage && <p className="muted">{importMessage}</p>}
+      {importMessage && <p className="muted status">{importMessage}</p>}
       <div className="field">
         <label>Αλυσίδα</label>
         <select value={chainId} onChange={(e) => setChainId(e.target.value)}>
@@ -287,6 +288,12 @@ export default function NewReceipt() {
         />
       </div>
       <h3>Είδη</h3>
+      {items.length === 0 && (
+        <p className="muted">
+          Φωτογράφισε την απόδειξη, διάλεξε αρχείο myDATA, ή πρόσθεσε τα είδη
+          χειροκίνητα.
+        </p>
+      )}
       {items.map((item) => {
         const converted = fromItemToItem(item);
         const lineText =
@@ -324,8 +331,8 @@ export default function NewReceipt() {
           </div>
         );
       })}
-      <button type="button" onClick={() => addItem()}>
-        Προσθήκη
+      <button type="button" className="add-item" onClick={() => addItem()}>
+        + Προσθήκη είδους
       </button>
       <p>
         <strong>Σύνολο: {formatCents(totalInCents)}</strong>

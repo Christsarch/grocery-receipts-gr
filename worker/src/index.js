@@ -1,4 +1,5 @@
 import { parseReceipt } from './receipt.js';
+import { UNSUPPORTED_PROVIDER } from './messages.js';
 
 // Από τον σύνδεσμο του QR της Entersoft στον σύνδεσμο του XML (πρότυπο PEPPOL).
 // Μορφή του QR: https://e-invoicing.gr/edocuments/ViewInvoice/<ofenm>/<id>_<token>
@@ -21,6 +22,7 @@ function entersoftXmlUrl(qrUrl) {
 
 // Οι πάροχοι που δεχόμαστε. Ο Worker δεν ανοίγει ποτέ άλλο site.
 const ALLOWED_HOSTS = ['e-invoicing.gr'];
+
 
 // Τα sites της εφαρμογής μας: μόνο αυτά μπορούν να διαβάσουν τις απαντήσεις του Worker
 const ALLOWED_ORIGINS = ['http://localhost:5173', 'https://christsarch.github.io'];
@@ -52,9 +54,9 @@ async function handleRequest(request) {
 		return new Response('Μη έγκυρος σύνδεσμος', { status: 400 });
 	}
 
-	// Μόνο πάροχοι από τη λίστα
+	// Μόνο πάροχοι από τη λίστα. Για τους άλλους (π.χ. ΑΒ / Epsilon) ο δρόμος είναι το αρχείο myDATA.
 	if (!ALLOWED_HOSTS.includes(parsedUrl.hostname)) {
-		return new Response('Άγνωστος πάροχος', { status: 400 });
+		return new Response(UNSUPPORTED_PROVIDER, { status: 400 });
 	}
 
 	// Σωστό site, αλλά λάθος μορφή συνδέσμου (π.χ. σκέτο https://e-invoicing.gr/)

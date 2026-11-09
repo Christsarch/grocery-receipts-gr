@@ -1,29 +1,21 @@
 /* Χρώματα ως μεταβλητές: αλλάζεις εδώ και αλλάζει όλη η εφαρμογή.
-   Το δεύτερο μπλοκ ενεργοποιείται όταν το κινητό είναι σε σκοτεινό θέμα. */
+   Η εφαρμογή έχει πάντα σκοτεινό θέμα, ανεξάρτητα από τη ρύθμιση της συσκευής. */
 :root {
-  --bg: #f4f6f5;
-  --surface: #ffffff;
-  --text: #1b2421;
-  --muted: #5d6b66;
-  --border: #dde3e0;
-  --accent: #1f6f5c;
-  --accent-text: #ffffff;
+  --bg: #111715;
+  --surface: #1b2320;
+  --text: #e8eeeb;
+  --muted: #9aa8a2;
+  --border: #2c3632;
+  --accent: #4fb89a;
+  --accent-text: #0d1311;
+  --accent-soft: #1d3a31; /* σκούρο πράσινο για τα δευτερεύοντα κουμπιά */
   --radius: 14px;
+  /* Λέει στον browser να ζωγραφίσει και τα δικά του στοιχεία (λίστες επιλογής, ημερολόγιο,
+     scrollbars) σε σκοτεινό θέμα. Χωρίς αυτό, π.χ. οι επιλογές του <select> ανοίγουν λευκές. */
+  color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111715;
-    --surface: #1b2320;
-    --text: #e8eeeb;
-    --muted: #9aa8a2;
-    --border: #2c3632;
-    --accent: #4fb89a;
-    --accent-text: #0d1311;
-  }
 }
 
 * { box-sizing: border-box; }
@@ -85,9 +77,21 @@ body {
   margin: 0;
 }
 
+/* Όλα τα κουμπιά: πράσινα, στο ύφος της σελίδας (αντί για το λευκό του browser).
+   Το κύριο κουμπί (.primary) και οι καρτέλες (.tab) έχουν δικό τους ύφος παρακάτω. */
 button {
   font: inherit;
   cursor: pointer;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+button:hover {
+  background: var(--accent);
+  color: var(--accent-text);
 }
 
 button.primary {
@@ -98,6 +102,10 @@ button.primary {
   border-radius: 999px;
   padding: 12px 24px;
   font-weight: 600;
+}
+
+button.primary:hover {
+  filter: brightness(1.1);
 }
 
 /* Μπάρα πλοήγησης στο κάτω μέρος, όπως στις εφαρμογές κινητού */
@@ -124,6 +132,11 @@ button.primary {
   background: none;
   border: none;
   color: var(--muted);
+}
+
+.tab:hover {
+  background: none;
+  color: var(--text);
 }
 
 .tab.active {
@@ -169,3 +182,8 @@ button.primary {
 
 /* Οι σύνδεσμοι του QR είναι πολύ μεγάλοι: σπάνε σε πολλές γραμμές αντί να βγαίνουν έξω από την οθόνη */
 .qr-link { overflow-wrap: anywhere; }
+
+.add-item { margin-top: 8px; }
+
+/* Μηνύματα κατάστασης της εισαγωγής ("Βρέθηκαν 3 είδη", λάθη) */
+.status { margin-bottom: 16px; }
