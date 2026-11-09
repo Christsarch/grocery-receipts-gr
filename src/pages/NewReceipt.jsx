@@ -1,5 +1,5 @@
 // Νέα απόδειξη. Δύο τρόποι αυτόματης εισαγωγής, που καταλήγουν στην ίδια φόρμα:
-// 1. Φωτογραφία με το QR → ο Worker φέρνει την ηλεκτρονική απόδειξη (π.χ. Μασούτης)
+// 1. Το QR (ζωντανή σάρωση με την κάμερα, ή φωτογραφία) → ο Worker φέρνει την ηλεκτρονική απόδειξη (π.χ. Μασούτης)
 // 2. Αρχείο "myData (detailed)" που κατέβασε ο χρήστης από τον πάροχο (π.χ. ΑΒ)
 // Η ίδια φόρμα χρησιμεύει για έλεγχο και διορθώσεις πριν την αποθήκευση,
 // και για χειροκίνητη καταχώριση όταν η απόδειξη δεν μπορεί να εισαχθεί αυτόματα.
@@ -17,6 +17,7 @@ import { fileToCanvas } from "../image/resize.js";
 import { readQr } from "../image/qr.js";
 import { fetchReceipt } from "../data/receiptApi.js";
 import { parseMyData } from "../data/mydata.js";
+import QrScanner from "../components/QrScanner.jsx";
 
 function fromItemToItem(formItem) {
   const quantity = parseDecimal(formItem.quantityText);
@@ -66,6 +67,8 @@ export default function NewReceipt() {
   const [photoInfo, setPhotoInfo] = useState("");
   const [qrText, setQrText] = useState("");
   const [importMessage, setImportMessage] = useState("");
+  // Είναι ανοιχτή η ζωντανή σάρωση με την κάμερα;
+  const [scanning, setScanning] = useState(false);
   const [mark, setMark] = useState(null);
 
   async function handlePhoto(e) {
@@ -141,6 +144,19 @@ export default function NewReceipt() {
     setDate(receipt.date);
     setItems(receipt.items.map((item) => importedToFormItem(item)));
     setImportMessage(`Βρέθηκαν ${receipt.items.length} είδη`);
+  }
+
+  // Ανοίγει τη ζωντανή σάρωση (και καθαρίζει ό,τι έμεινε από προηγούμενη φωτογραφία)
+  function startScan() {
+    clearPhoto();
+    setScanning(true);
+  }
+
+  // Ο σαρωτής βρήκε QR: κλείνει, και η απόδειξη φορτώνεται όπως και από φωτογραφία
+  function handleScanResult(text) {
+    setScanning(false);
+    setQrText(text);
+    importFromQr(text);
   }
 
   // Στέλνει τον σύνδεσμο του QR στον Worker και γεμίζει τη φόρμα με την απόδειξη
@@ -225,8 +241,18 @@ export default function NewReceipt() {
   return (
     <section className="page">
       <h2>Νέα απόδειξη</h2>
+      {scanning ? (
+        <QrScanner
+          onResult={handleScanResult}
+          onCancel={() => setScanning(false)}
+        />
+      ) : (
+        <button type="button" className="primary scan-button" onClick={startScan}>
+          📷 Σάρωση QR με την κάμερα
+        </button>
+      )}
       <label className="photo-button">
-        📷 Φωτογραφία απόδειξης
+        🖼️ Φωτογραφία απόδειξης
         <input
           type="file"
           accept="image/*"
@@ -249,22 +275,23 @@ export default function NewReceipt() {
           <small>{photoInfo}</small>
           {qrText === null && (
             <p className="muted">
-              Δεν βρέθηκε QR. Δοκίμασε να φωτογραφίσεις από κοντά μόνο το QR, με
-              καλό φωτισμό.
-            </p>
-          )}
-          {qrText && (
-            <p className="qr-link">
-              QR:{" "}
-              <a href={qrText} target="_blank" rel="noopener noreferrer">
-                {qrText}
-              </a>
+              Δεν βρέθηκε QR σε αυτή τη φωτογραφία. Δοκίμασε τη ζωντανή σάρωση
+              (📷 Σάρωση QR με την κάμερα): πετυχαίνει πολύ πιο συχνά.
             </p>
           )}
           <button type="button" onClick={removePhoto}>
             Αφαίρεση φωτογραφίας
           </button>
         </div>
+      )}
+      {/* Ο σύνδεσμος του QR, είτε ήρθε από φωτογραφία είτε από τη ζωντανή σάρωση */}
+      {qrText && (
+        <p className="qr-link">
+          QR:{" "}
+          <a href={qrText} target="_blank" rel="noopener noreferrer">
+            {qrText}
+          </a>
+        </p>
       )}
       {/* Έξω από τη φωτογραφία: φαίνεται και στην εισαγωγή αρχείου myDATA */}
       {importMessage && <p className="muted status">{importMessage}</p>}

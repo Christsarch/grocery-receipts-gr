@@ -46,18 +46,24 @@ AADE licenses around 40 providers and does not require them to use a common view
 - The file also contains card payment details (terminal and transaction ids). The parser ignores them.
 - The **PDF** has a real text layer (not a scanned image), so it could be parsed as a fallback, but the detailed myDATA file makes that unnecessary.
 
-## Reading the QR code from a photo
+## Reading the QR code
 
-- Thermal printers leave thin **white lines** through the QR code, and common decoders (jsQR, ZXing) fail on them.
+- Thermal printers leave thin **white lines** through the QR code. Decoders that read clean codes easily (jsQR, and ZXing on the raw image) often fail on them.
 - The direction of the lines in the photo depends on the printer and on how the phone was held: on the Masoutis receipt they were horizontal, on the AB receipt vertical.
-- **Fix** (`src/image/qr.js`): a directional minimum filter (morphological erosion of the white) that "closes" the lines, tried horizontally and vertically with increasing strength, first at full size and then at half size. The phone's native `BarcodeDetector` is tried first when the browser has one (Chrome on Android).
+- **Decoder:** ZXing compiled to WebAssembly (`zxing-wasm`, served by the app itself), after the phone's native `BarcodeDetector` when the browser has one (Chrome on Android).
+- **Pre-processing:** if the raw image fails, the app tries variants that close the lines (a directional minimum filter, i.e. morphological erosion of the white) or shrink the image (averaging blurs thin lines away). The order of the variants was chosen greedily from a benchmark (below), so the ones that rescue most images run first.
+- **Live scanning:** the main button opens the camera and decodes a frame every ~0.1 s, one light variant per frame. Small movements and autofocus produce many slightly different frames, so one of them usually reads, the same reason scanner apps succeed where a single photo fails.
 
-| Test image | Before | After |
+### Benchmark
+
+300 synthetic photos generated to look like thermal receipts: a real-length receipt link as QR, white printer lines of random thickness and spacing in either direction, dot texture, blur, noise, rotation up to 20°, perspective, uneven lighting, JPEG compression, with the QR at 25% to 90% of the image width (1200×1600, the app's working size).
+
+| Decoder | Read | Average time per photo (laptop) |
 |---|---|---|
-| QR crop, Masoutis | read | read |
-| Whole receipt, AB | not read | read (about 2.5 s on a laptop) |
-| Whole receipt, AB, rotated 90° | not read | read |
-| Whole receipt, AB, upside down | not read | not read |
+| Before: jsQR + line filling | 88% (first 60 photos) | 4.3 s |
+| Now: ZXing + line filling + shrinking | **97%** (291 of 300), no wrong reads | **0.09 s** |
+
+The remaining 3% have printer lines as thick as a whole module. The real photos from the receipts in this project are all read, in every orientation (0°, 90°, 180°, 270°).
 
 ## Other chains
 

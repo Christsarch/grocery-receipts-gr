@@ -11,7 +11,7 @@ Grocery spending is one of the biggest monthly expenses for students and househo
 ## How it works
 
 - **Progressive Web App:** runs in the phone browser and installs to the home screen; one codebase for Android and iOS.
-- **QR code reading in the browser:** the phone's native `BarcodeDetector` when available, otherwise jsQR, with a small image-processing step that fills the white lines thermal printers leave across the code. Photos never leave the device.
+- **QR code reading in the browser:** live camera scanning (like a scanner app) or a photo. Decoding uses the phone's native `BarcodeDetector` when available, otherwise ZXing compiled to WebAssembly, with an image-processing step that closes the white lines thermal printers leave across the code. On a benchmark of 300 synthetic thermal-receipt photos it reads 97% of them in about 0.1 s each. Images never leave the device.
 - **Electronic receipts, not OCR:** Greek retail receipts link to the provider's copy of the document, available as an **EN 16931 / PEPPOL BIS Billing 3.0** UBL XML. The app parses that European standard instead of guessing from a photo, and checks that the line totals add up to the receipt total. The receipt's MARK (the unique number the Greek tax authority assigns to every receipt) prevents saving the same receipt twice.
 - **Official myDATA files as a second route:** some providers block automated access, so for them the user downloads the receipt's "myData (detailed)" file (the Greek tax authority's own XML schema, the same for every provider) and the app parses it in the browser.
 - **A tiny, stateless proxy:** a Cloudflare Worker fetches the XML on the app's behalf (browsers block cross-site reads), parses it and returns only the items as JSON, so payment and loyalty-card details never reach the app. It only accepts known receipt providers and keeps no logs.
@@ -22,7 +22,7 @@ How each provider was investigated, and why some are imported automatically and 
 
 ## Tech stack
 
-React · Vite · IndexedDB (Dexie) · jsQR · Cloudflare Workers · GitHub Actions / Pages · Python (parser prototype in `research/`)
+React · Vite · IndexedDB (Dexie) · ZXing (zxing-wasm) · Cloudflare Workers · GitHub Actions / Pages · Python (parser prototype in `research/`)
 
 ## Status
 
