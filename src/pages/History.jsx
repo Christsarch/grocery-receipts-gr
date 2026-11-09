@@ -9,6 +9,7 @@ import { CHAINS } from "../data/chains.js";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db.js";
 import { useState } from "react";
+import { categorize } from "../data/categories.js";
 
 // "1,037 κιλά" ή "2 τεμ."
 function formatQuantity(item) {
@@ -93,7 +94,12 @@ export default function History() {
               <ul className="receipt-items">
                 {receipt.items.map((item, index) => (
                   <li key={item.id ?? index}>
-                    <span>{item.name}</span>
+                    <span>
+                      {item.name}
+                      <small className="category">
+                        {categorize(item.name).name}
+                      </small>
+                    </span>
                     <span className="muted">{formatQuantity(item)}</span>
                     <span>{formatCents(lineTotalInCents(item))}</span>
                   </li>

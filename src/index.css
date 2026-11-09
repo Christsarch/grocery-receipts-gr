@@ -199,3 +199,6 @@ button.primary:hover {
   display: grid; grid-template-columns: 1fr auto auto; gap: 12px;
   align-items: baseline; font-size: 0.9rem;
 }
+
+/* Η κατηγορία κάτω από το όνομα κάθε είδους στο Ιστορικό */
+.category { display: block; font-size: 0.75rem; color: var(--accent); }
