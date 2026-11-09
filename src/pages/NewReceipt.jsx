@@ -1,5 +1,6 @@
-// Νέα απόδειξη.
-// Φωτογραφία με το QR → ο Worker φέρνει την ηλεκτρονική απόδειξη → η φόρμα γεμίζει μόνη της.
+// Νέα απόδειξη. Δύο τρόποι αυτόματης εισαγωγής, που καταλήγουν στην ίδια φόρμα:
+// 1. Φωτογραφία με το QR → ο Worker φέρνει την ηλεκτρονική απόδειξη (π.χ. Μασούτης)
+// 2. Αρχείο "myData (detailed)" που κατέβασε ο χρήστης από τον πάροχο (π.χ. ΑΒ)
 // Η ίδια φόρμα χρησιμεύει για έλεγχο και διορθώσεις πριν την αποθήκευση,
 // και για χειροκίνητη καταχώριση όταν η απόδειξη δεν μπορεί να εισαχθεί αυτόματα.
 
@@ -15,6 +16,7 @@ import { db } from "../data/db.js";
 import { fileToCanvas } from "../image/resize.js";
 import { readQr } from "../image/qr.js";
 import { fetchReceipt } from "../data/receiptApi.js";
+import { parseMyData } from "../data/mydata.js";
 
 function fromItemToItem(formItem) {
   const quantity = parseDecimal(formItem.quantityText);
@@ -43,7 +45,7 @@ function newEmptyItem() {
   };
 }
 
-// Από ένα είδος του Worker σε ένα είδος της φόρμας (το αντίστροφο της fromItemToItem)
+// Από ένα εισαγόμενο είδος (Worker ή myDATA) σε ένα είδος της φόρμας (το αντίστροφο της fromItemToItem)
 function importedToFormItem(item) {
   return {
     id: crypto.randomUUID(),
@@ -79,17 +81,65 @@ export default function NewReceipt() {
     setPhotoInfo("");
     setQrText("");
     setImportMessage("");
+    setMark(null);
 
     const result = await fileToCanvas(file);
     setPhotoInfo(
       `${result.originalWidth}×${result.originalHeight} → ${result.canvas.width}×${result.canvas.height}`,
     );
+    // Η αναζήτηση μπορεί να πάρει μερικά δευτερόλεπτα σε δύσκολες φωτογραφίες
+    setImportMessage("Αναζήτηση QR…");
     // Χρησιμοποιούμε τη μεταβλητή qr και όχι το qrText: το state αλλάζει μόνο στο επόμενο render
     const qr = await readQr(result.canvas);
     setQrText(qr);
+    setImportMessage("");
     if (qr !== null) {
       await importFromQr(qr);
     }
+  }
+
+  // Ο χρήστης διάλεξε αρχείο myDATA (detailed) που κατέβασε από τον πάροχο
+  async function handleMyDataFile(e) {
+    const file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    // Καθαρίζουμε φωτογραφία και μηνύματα από προηγούμενη εισαγωγή
+    clearPhoto();
+    try {
+      const xmlText = await file.text();
+      const receipt = parseMyData(xmlText);
+      await fillFormFromReceipt(receipt);
+    } catch (error) {
+      // Το μήνυμα έρχεται από την parseMyData (π.χ. "Κατέβασε το «myData (detailed)»")
+      setImportMessage(error.message);
+    }
+    // Αδειάζουμε την επιλογή, ώστε να μπορεί να ξαναδιαλεχτεί το ίδιο αρχείο
+    e.target.value = "";
+  }
+
+  // Κοινό για QR και αρχείο myDATA: έλεγχος διπλοεγγραφής και γέμισμα της φόρμας
+  // Τα λάθη τα πιάνει όποιος την καλεί (importFromQr, handleMyDataFile).
+  async function fillFormFromReceipt(receipt) {
+    // Έλεγχος διπλοεγγραφής: υπάρχει ήδη απόδειξη με τον ίδιο ΜΑΡΚ;
+    if (receipt.mark !== null) {
+      const existing = await db.receipts
+        .where("mark")
+        .equals(receipt.mark)
+        .first();
+      if (existing !== undefined) {
+        setImportMessage("Αυτή η απόδειξη έχει ήδη αποθηκευτεί");
+        return;
+      }
+    }
+    setMark(receipt.mark);
+    // Άγνωστος ΑΦΜ (chainId null): ο χρήστης διαλέγει αλυσίδα από τη λίστα
+    if (receipt.chainId !== null) {
+      setChainId(receipt.chainId);
+    }
+    setDate(receipt.date);
+    setItems(receipt.items.map((item) => importedToFormItem(item)));
+    setImportMessage(`Βρέθηκαν ${receipt.items.length} είδη`);
   }
 
   // Στέλνει τον σύνδεσμο του QR στον Worker και γεμίζει τη φόρμα με την απόδειξη
@@ -97,26 +147,7 @@ export default function NewReceipt() {
     setImportMessage("Φόρτωση απόδειξης…");
     try {
       const receipt = await fetchReceipt(qrUrl);
-
-      // Έλεγχος διπλοεγγραφής: υπάρχει ήδη απόδειξη με τον ίδιο ΜΑΡΚ;
-      if (receipt.mark !== null) {
-        const existing = await db.receipts
-          .where("mark")
-          .equals(receipt.mark)
-          .first();
-        if (existing !== undefined) {
-          setImportMessage("Αυτή η απόδειξη έχει ήδη αποθηκευτεί");
-          return;
-        }
-      }
-      setMark(receipt.mark);
-      // Άγνωστος ΑΦΜ (chainId null): ο χρήστης διαλέγει αλυσίδα από τη λίστα
-      if (receipt.chainId !== null) {
-        setChainId(receipt.chainId);
-      }
-      setDate(receipt.date);
-      setItems(receipt.items.map((item) => importedToFormItem(item)));
-      setImportMessage(`Βρέθηκαν ${receipt.items.length} είδη`);
+      await fillFormFromReceipt(receipt);
     } catch (error) {
       // Το μήνυμα έρχεται από το fetchReceipt (π.χ. "Άγνωστος πάροχος")
       setImportMessage(error.message);
@@ -203,6 +234,10 @@ export default function NewReceipt() {
           onChange={handlePhoto}
         />
       </label>
+      <label className="photo-button">
+        📄 Αρχείο myDATA
+        <input type="file" accept=".xml" hidden onChange={handleMyDataFile} />
+      </label>
       {photoUrl && (
         <div>
           <img
@@ -225,12 +260,13 @@ export default function NewReceipt() {
               </a>
             </p>
           )}
-          {importMessage && <p className="muted">{importMessage}</p>}
           <button type="button" onClick={removePhoto}>
             Αφαίρεση φωτογραφίας
           </button>
         </div>
       )}
+      {/* Έξω από τη φωτογραφία: φαίνεται και στην εισαγωγή αρχείου myDATA */}
+      {importMessage && <p className="muted">{importMessage}</p>}
       <div className="field">
         <label>Αλυσίδα</label>
         <select value={chainId} onChange={(e) => setChainId(e.target.value)}>
