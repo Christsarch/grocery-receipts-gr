@@ -187,3 +187,15 @@ button.primary:hover {
 
 /* Μηνύματα κατάστασης της εισαγωγής ("Βρέθηκαν 3 είδη", λάθη) */
 .status { margin-bottom: 16px; }
+
+/* Ιστορικό: η κάρτα ανοίγει με κλικ και δείχνει τα είδη */
+.receipt-card { cursor: pointer; }
+.receipt-items {
+  list-style: none; margin: 12px 0 0; padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.receipt-items li {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 12px;
+  align-items: baseline; font-size: 0.9rem;
+}
