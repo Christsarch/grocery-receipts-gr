@@ -31,8 +31,8 @@ See [ROADMAP.md](ROADMAP.md) for the phased plan (in Greek).
 - [x] Phase 0: project skeleton, CI deploy
 - [x] Phase 1: manual entry and local storage
 - [x] Phase 2: camera and receipt QR code
-- [ ] Phase 3: electronic receipt import (in progress: Masoutis via QR scan, AB via the provider's myDATA file, duplicate detection by MARK; more providers next)
-- [ ] Phase 4: spending statistics
+- [x] Phase 3: electronic receipt import: Masoutis via QR scan, AB via the provider's myDATA file, duplicate detection by MARK (v0.1.0). More providers are added as real receipts come in.
+- [ ] Phase 4: receipt details, categories and spending charts (in progress, v0.2.0)
 - [ ] Phase 5: product matching across chains, offline PWA, v1.0
 
 ## Run locally
