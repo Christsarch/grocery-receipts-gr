@@ -4,5 +4,4 @@ export const CHAINS = [
   { id: "ab",          name: "ΑΒ Βασιλόπουλος" },
   { id: "lidl",        name: "Lidl" },
   { id: "mymarket",    name: "My Market" },
-  { id: "galaxias",    name: "Γαλαξίας" },
 ];

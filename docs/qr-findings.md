@@ -66,7 +66,6 @@ AADE licenses around 40 providers and does not require them to use a common view
 | Lidl | ? | Mostly digital receipts in the Lidl Plus app; paper only on request |
 | Sklavenitis | ? | Waiting for a receipt |
 | My Market | ? | Waiting for a receipt |
-| Galaxias | ? | Waiting for a receipt |
 
 The fastest way to find out: the provider's website is printed under the MARK on every electronic receipt.
 
