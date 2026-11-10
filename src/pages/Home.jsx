@@ -2,6 +2,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db.js";
 import { formatCents, receiptsTotalInCents } from "../data/money.js";
+import BackupCard from "../components/BackupCard.jsx";
 
 export default function Home({ onNavigate }) {
   const receipts = useLiveQuery(() => db.receipts.toArray());
@@ -41,6 +42,7 @@ export default function Home({ onNavigate }) {
             Νέα απόδειξη
           </button>
         </div>
+        <BackupCard />
       </section>
     );
   }
@@ -52,6 +54,7 @@ export default function Home({ onNavigate }) {
         <p className="big-total">{formatCents(monthTotalInCents)}</p>
         <p className="muted">από {monthReceipts.length} αποδείξεις</p>
       </div>
+      <BackupCard />
     </section>
   );
 }

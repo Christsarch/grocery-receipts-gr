@@ -241,3 +241,8 @@ button.primary:hover {
 /* Στατιστικά: κάρτες γραφημάτων */
 .chart-card { margin-bottom: 16px; }
 .chart-card h3 { margin: 0 0 8px; font-size: 1rem; }
+
+/* Αρχική: αντίγραφο ασφαλείας */
+.backup-card { margin-top: 16px; }
+.backup-card h3 { margin: 0 0 6px; font-size: 1rem; }
+.backup-buttons { display: flex; gap: 8px; margin-top: 12px; }

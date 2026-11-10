@@ -104,7 +104,7 @@ npm run dev
 ## Φάση 5: Εφαρμογή για το κινητό, ασφάλεια δεδομένων, και v1.0
 
 - [x] PWA: εγκατάσταση στην αρχική οθόνη και λειτουργία χωρίς internet ([vite-plugin-pwa](https://vite-pwa-org.netlify.app))
-- [ ] Εξαγωγή και εισαγωγή αντιγράφου ασφαλείας (αρχείο JSON): τα δεδομένα ζουν μόνο στη συσκευή
+- [x] Εξαγωγή και εισαγωγή αντιγράφου ασφαλείας (αρχείο JSON): τα δεδομένα ζουν μόνο στη συσκευή
 - [ ] Tests με [Vitest](https://vitest.dev) για τα `money.js`, `categories.js`, `stats.js`, `mydata.js`
 - [ ] README με GIF και live link. Μια ανάρτηση στο LinkedIn.
 
