@@ -1,8 +1,8 @@
 {
   "name": "grocery-receipts-gr",
   "private": true,
-  "version": "0.1.0",
-  "description": "Προσωπικό ιστορικό εξόδων σούπερ μάρκετ από φωτογραφίες αποδείξεων (PWA, OCR στον browser)",
+  "version": "0.2.0",
+  "description": "Προσωπικό ιστορικό εξόδων σούπερ μάρκετ από τις ηλεκτρονικές αποδείξεις (web app)",
   "type": "module",
   "scripts": {
     "dev": "vite",
