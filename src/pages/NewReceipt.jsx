@@ -4,7 +4,7 @@
 // Η ίδια φόρμα χρησιμεύει για έλεγχο και διορθώσεις πριν την αποθήκευση,
 // και για χειροκίνητη καταχώριση όταν η απόδειξη δεν μπορεί να εισαχθεί αυτόματα.
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CHAINS } from "../data/chains.js";
 import {
   parseDecimal,
@@ -69,6 +69,11 @@ export default function NewReceipt() {
   const [importMessage, setImportMessage] = useState("");
   // Είναι ανοιχτή η ζωντανή σάρωση με την κάμερα;
   const [scanning, setScanning] = useState(false);
+  // Είναι ανοιχτή η λίστα με τους τρόπους εισαγωγής;
+  const [menuOpen, setMenuOpen] = useState(false);
+  // Τα κρυφά inputs αρχείων: τα "πατάμε" από τη λίστα με .click()
+  const photoInputRef = useRef(null);
+  const myDataInputRef = useRef(null);
   const [mark, setMark] = useState(null);
 
   async function handlePhoto(e) {
@@ -144,6 +149,14 @@ export default function NewReceipt() {
     setDate(receipt.date);
     setItems(receipt.items.map((item) => importedToFormItem(item)));
     setImportMessage(`Βρέθηκαν ${receipt.items.length} είδη`);
+  }
+
+  // Επιλογή από τη λίστα: κλείνει τη λίστα και ξεκινάει τον τρόπο που διάλεξε ο χρήστης
+  function chooseImport(method) {
+    setMenuOpen(false);
+    if (method === "scan") startScan();
+    if (method === "photo") photoInputRef.current.click();
+    if (method === "mydata") myDataInputRef.current.click();
   }
 
   // Ανοίγει τη ζωντανή σάρωση (και καθαρίζει ό,τι έμεινε από προηγούμενη φωτογραφία)
@@ -247,24 +260,53 @@ export default function NewReceipt() {
           onCancel={() => setScanning(false)}
         />
       ) : (
-        <button type="button" className="primary scan-button" onClick={startScan}>
-          📷 Σάρωση QR με την κάμερα
-        </button>
+        <div className="import-picker">
+          <button
+            type="button"
+            className="primary import-toggle"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            + Εισαγωγή απόδειξης <span>{menuOpen ? "▴" : "▾"}</span>
+          </button>
+          {menuOpen && (
+            <ul className="import-menu">
+              <li>
+                <button type="button" onClick={() => chooseImport("scan")}>
+                  <span>📷</span> Σάρωση QR με την κάμερα
+                  <small>Ο πιο γρήγορος τρόπος</small>
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => chooseImport("photo")}>
+                  <span>🖼️</span> Φωτογραφία του QR
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => chooseImport("mydata")}>
+                  <span>📄</span> Αρχείο myDATA
+                  <small>Για αλυσίδες χωρίς αυτόματη εισαγωγή (π.χ. ΑΒ)</small>
+                </button>
+              </li>
+            </ul>
+          )}
+        </div>
       )}
-      <label className="photo-button">
-        🖼️ Φωτογραφία απόδειξης
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          hidden
-          onChange={handlePhoto}
-        />
-      </label>
-      <label className="photo-button">
-        📄 Αρχείο myDATA
-        <input type="file" accept=".xml" hidden onChange={handleMyDataFile} />
-      </label>
+      {/* Κρυφά: ανοίγουν από τη λίστα */}
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={handlePhoto}
+      />
+      <input
+        ref={myDataInputRef}
+        type="file"
+        accept=".xml"
+        hidden
+        onChange={handleMyDataFile}
+      />
       {photoUrl && (
         <div>
           <img
@@ -317,7 +359,7 @@ export default function NewReceipt() {
       <h3>Είδη</h3>
       {items.length === 0 && (
         <p className="muted">
-          Φωτογράφισε την απόδειξη, διάλεξε αρχείο myDATA, ή πρόσθεσε τα είδη
+          Σκάναρε ή φωτογράφισε το QR της απόδειξης, ή πρόσθεσε τα είδη
           χειροκίνητα.
         </p>
       )}
