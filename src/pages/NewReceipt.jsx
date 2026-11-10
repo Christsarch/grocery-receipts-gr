@@ -300,10 +300,11 @@ export default function NewReceipt() {
         hidden
         onChange={handlePhoto}
       />
+      {/* Χωρίς φίλτρο τύπου αρχείου: στο Android το accept=".xml" κάνει συχνά τα XML αρχεία
+          "γκρι" (μη επιλέξιμα) στις Λήψεις. Αν ο χρήστης διαλέξει λάθος αρχείο, η parseMyData το λέει. */}
       <input
         ref={myDataInputRef}
         type="file"
-        accept=".xml"
         hidden
         onChange={handleMyDataFile}
       />
