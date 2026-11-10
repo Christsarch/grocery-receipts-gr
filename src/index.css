@@ -238,3 +238,6 @@ button.primary:hover {
   font: inherit; font-size: 0.75rem; color: var(--accent);
   background: transparent; border: none; cursor: pointer;
 }
+/* Στατιστικά: κάρτες γραφημάτων */
+.chart-card { margin-bottom: 16px; }
+.chart-card h3 { margin: 0 0 8px; font-size: 1rem; }
