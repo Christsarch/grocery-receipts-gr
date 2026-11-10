@@ -9,7 +9,11 @@ import { CHAINS } from "../data/chains.js";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db.js";
 import { useState } from "react";
-import { categorize } from "../data/categories.js";
+import {
+  categorize,
+  ALL_CATEGORIES,
+  normalizeName,
+} from "../data/categories.js";
 
 // "1,037 κιλά" ή "2 τεμ."
 function formatQuantity(item) {
@@ -30,6 +34,22 @@ export default function History() {
   const receipts = useLiveQuery(() =>
     db.receipts.orderBy("date").reverse().toArray(),
   );
+
+  // Οι διορθώσεις του χρήστη, ως { όνομα: id κατηγορίας }
+  const overrideList = useLiveQuery(() => db.categoryOverrides.toArray());
+  // Όσο φορτώνει, το overrideList είναι undefined: τότε χρησιμοποιούμε κενή λίστα
+  const overrides = Object.fromEntries(
+    (overrideList ?? []).map(({ name, categoryId }) => [name, categoryId]),
+  );
+
+  // Ο χρήστης διάλεξε άλλη κατηγορία για ένα είδος. Το put βάζει ή αντικαθιστά.
+  // Το κλειδί του πίνακα λέγεται "name" (db.js), οπότε το πεδίο ΠΡΕΠΕΙ να λέγεται name.
+  async function changeCategory(itemName, categoryId) {
+    await db.categoryOverrides.put({
+      name: normalizeName(itemName),
+      categoryId,
+    });
+  }
 
   async function deleteReceipt(e, id) {
     // Το κλικ σταματάει εδώ: αλλιώς θα "ανέβαινε" στην κάρτα και θα την άνοιγε/έκλεινε
@@ -96,9 +116,22 @@ export default function History() {
                   <li key={item.id ?? index}>
                     <span>
                       {item.name}
-                      <small className="category">
-                        {categorize(item.name).name}
-                      </small>
+                      {/* Η κατηγορία: διόρθωση του χρήστη ή κανόνες. Ο χρήστης την αλλάζει από εδώ */}
+                      <select
+                        className="category-select"
+                        value={categorize(item.name, overrides).id}
+                        // Το κλικ μένει στη λίστα: αλλιώς θα έκλεινε την κάρτα
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) =>
+                          changeCategory(item.name, e.target.value)
+                        }
+                      >
+                        {ALL_CATEGORIES.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
                     </span>
                     <span className="muted">{formatQuantity(item)}</span>
                     <span>{formatCents(lineTotalInCents(item))}</span>

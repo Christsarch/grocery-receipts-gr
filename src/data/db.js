@@ -8,3 +8,9 @@ db.version(1).stores({
 
 // Έκδοση 2: ευρετήριο στον ΜΑΡΚ, για τον έλεγχο διπλοεγγραφής
 db.version(2).stores({ receipts: "id, date, chainId, mark" });
+
+// Έκδοση 3: οι κατηγορίες που διόρθωσε ο χρήστης (κανονικοποιημένο όνομα είδους → κατηγορία)
+db.version(3).stores({
+  receipts: "id, date, chainId, mark",
+  categoryOverrides: "name",
+});

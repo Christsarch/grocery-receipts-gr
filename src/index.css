@@ -231,3 +231,10 @@ button.primary:hover {
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
 }
 .scanner-hint { margin: 8px 0; }
+
+/* Η κατηγορία στο Ιστορικό ως διακριτική λίστα επιλογής (μοιάζει με κείμενο, ανοίγει με κλικ) */
+.category-select {
+  display: block; margin-top: 2px; padding: 0;
+  font: inherit; font-size: 0.75rem; color: var(--accent);
+  background: transparent; border: none; cursor: pointer;
+}

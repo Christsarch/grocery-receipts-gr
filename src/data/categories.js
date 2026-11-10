@@ -118,14 +118,24 @@ export const CATEGORIES = [
 // Ό,τι δεν ταιριάζει πουθενά
 export const OTHER = { id: "other", name: "Άλλα" };
 
+// Όλες οι επιλογές για τη λίστα του χρήστη: οι κατηγορίες και τα "Άλλα"
+export const ALL_CATEGORIES = [...CATEGORIES, OTHER];
+
 // Κεφαλαία και χωρίς τόνους, ώστε το "γιαούρτι" (χειροκίνητη καταχώριση) να ταιριάζει με το "ΓΙΑΟΥΡΤ"
 export function normalizeName(name) {
   return name.toUpperCase().normalize("NFD").replace(/\p{M}/gu, "");
 }
 
-// Η κατηγορία ενός είδους, από το όνομά του
-export function categorize(name) {
+// Η κατηγορία ενός είδους: πρώτα η διόρθωση του χρήστη (αν υπάρχει), μετά οι κανόνες.
+// overrides: { κανονικοποιημένο όνομα: id κατηγορίας }
+export function categorize(name, overrides = {}) {
   const normName = normalizeName(name);
+
+  const overrideId = overrides[normName];
+  if (overrideId) {
+    const found = ALL_CATEGORIES.find((cat) => cat.id === overrideId);
+    if (found) return found;
+  }
   // Η ΠΡΩΤΗ κατηγορία (η σειρά μετράει) που έχει ΚΑΠΟΙΑ λέξη κλειδί μέσα στο όνομα
   const category = CATEGORIES.find((category) =>
     category.keywords.some((keyword) => normName.includes(keyword)),
