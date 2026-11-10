@@ -26,6 +26,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        # Τα τεστ τρέχουν πρώτα: αν αποτύχει έστω ένα, η εφαρμογή ΔΕΝ ανεβαίνει
+      - run: npm test -- --run
       - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

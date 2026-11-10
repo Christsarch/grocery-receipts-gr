@@ -105,7 +105,7 @@ npm run dev
 
 - [x] PWA: εγκατάσταση στην αρχική οθόνη και λειτουργία χωρίς internet ([vite-plugin-pwa](https://vite-pwa-org.netlify.app))
 - [x] Εξαγωγή και εισαγωγή αντιγράφου ασφαλείας (αρχείο JSON): τα δεδομένα ζουν μόνο στη συσκευή
-- [ ] Tests με [Vitest](https://vitest.dev) για τα `money.js`, `categories.js`, `stats.js`, `mydata.js`
+- [x] Tests με [Vitest](https://vitest.dev) για τα `money.js`, `categories.js`, `stats.js`, `mydata.js` (23 τεστ), που τρέχουν και στο GitHub Actions πριν από κάθε ανέβασμα
 - [ ] README με GIF και live link. Μια ανάρτηση στο LinkedIn.
 
 **Ορόσημο:** έκδοση v1.0.

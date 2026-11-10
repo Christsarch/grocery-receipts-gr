@@ -40,4 +40,8 @@ export default defineConfig(({ command, isPreview }) => ({
     }),
   ],
   base: command === 'build' || isPreview ? '/grocery-receipts-gr/' : '/',
+  // Τεστ (Vitest): μόνο της εφαρμογής. Ο Worker έχει δικά του τεστ, στον φάκελο worker
+  test: {
+    include: ['src/**/*.test.js'],
+  },
 }))
